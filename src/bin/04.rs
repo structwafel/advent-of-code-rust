@@ -68,7 +68,52 @@ fn get_coord(x: usize, y: usize, grid: &[&[char]]) -> Option<char> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    let grid: Vec<Vec<char>> = input
+        .split("\n")
+        .into_iter()
+        .collect::<Vec<&str>>()
+        .into_iter()
+        .map(|line| line.chars().collect())
+        .collect();
+
+    let mut counter = 0;
+
+    let xmas = ['M', 'A', 'S'];
+    let xmas_reversed = ['S', 'A', 'M'];
+
+    let grid_refs: Vec<&[char]> = grid.iter().map(|row| row.as_slice()).collect();
+
+    for (x, row) in grid.iter().enumerate() {
+        for (y, c) in row.iter().enumerate() {
+            if *c == 'A' {
+                if let Some((diag1, diag2)) = get_diagonals(x, y, &grid_refs) {
+                    if (diag1 == xmas || diag1 == xmas_reversed)
+                        && (diag2 == xmas || diag2 == xmas_reversed)
+                    {
+                        counter += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    Some(counter)
+}
+
+fn get_diagonals(x: usize, y: usize, grid: &[&[char]]) -> Option<(Vec<char>, Vec<char>)> {
+    let diag1 = vec![
+        get_coord(x.checked_sub(1)?, y.checked_sub(1)?, grid)?,
+        get_coord(x.checked_sub(0)?, y.checked_sub(0)?, grid)?,
+        get_coord(x.checked_add(1)?, y.checked_add(1)?, grid)?,
+    ];
+
+    let diag2 = vec![
+        get_coord(x.checked_sub(1)?, y.checked_add(1)?, grid)?,
+        get_coord(x, y, grid)?,
+        get_coord(x.checked_add(1)?, y.checked_sub(1)?, grid)?,
+    ];
+
+    Some((diag1, diag2))
 }
 
 #[cfg(test)]
@@ -84,6 +129,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(9));
     }
 }
